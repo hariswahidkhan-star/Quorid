@@ -1,0 +1,53 @@
+# Local development infrastructure for Quorid.
+#
+# This brings up the backing services (MySQL 8 + Redis 7 + Adminer). The API and
+# frontend are intended to run on the host during development:
+#   backend:  cd backend/src/Quorid.Api && dotnet run
+#   frontend: cd frontend && npm run dev
+#
+#   docker compose up -d
+#
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: quorid-mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: quorid_root
+      MYSQL_DATABASE: quorid
+      MYSQL_USER: quorid
+      MYSQL_PASSWORD: quorid_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - quorid-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pquorid_root"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: quorid-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - quorid-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:latest
+    container_name: quorid-adminer
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mysql
+
+volumes:
+  quorid-mysql-data:
+  quorid-redis-data:

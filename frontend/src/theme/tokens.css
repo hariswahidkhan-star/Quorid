@@ -1,0 +1,20 @@
+/* SAP Fiori design tokens (spec §5.1). Quorid Gold is the only non-SAP accent. */
+:root {
+  --shell: #354a5f;
+  --brand: #0a6ed1;
+  --positive: #107e3e;
+  --critical: #e9730c;
+  --negative: #bb0000;
+  --background: #f5f6f7;
+  --surface: #ffffff;
+  --border: #d9d9d9;
+  --text-primary: #32363a;
+  --text-secondary: #6a6d70;
+  --gold: #d4a843;
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}

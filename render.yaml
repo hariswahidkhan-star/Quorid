@@ -1,0 +1,76 @@
+# Quorid — Render Blueprint.
+# Deploy: Render Dashboard → New → Blueprint → pick this repo → Apply.
+#
+# NOTE: Render's managed databases are PostgreSQL / Key-Value only, so MySQL 8 runs
+# here as a private service with a persistent disk. Private services and disks require
+# a paid instance type (Starter or higher). To use an external managed MySQL instead
+# (PlanetScale, Aiven, …), delete the `quorid-mysql` service and set the app's
+# Database__Host / Database__Password (or ConnectionStrings__Default) to that provider.
+
+databases: []
+
+services:
+  # --- MySQL 8: private service + persistent disk ---
+  - type: pserv
+    name: quorid-mysql
+    runtime: image
+    plan: starter
+    image:
+      url: docker.io/library/mysql:8.0
+    disk:
+      name: quorid-mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 10
+    envVars:
+      - key: MYSQL_DATABASE
+        value: quorid
+      - key: MYSQL_USER
+        value: quorid
+      - key: MYSQL_PASSWORD
+        generateValue: true
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+
+  # --- Quorid app: .NET 8 API serving the React SPA (single origin) ---
+  - type: web
+    name: quorid
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    # Push-to-deploy. Set to false to deploy only after CI passes — the
+    # "Deploy to Render" job in .github/workflows/ci.yml then fires a deploy hook
+    # (create the hook in Render → Settings → Deploy Hook, store it as the
+    # RENDER_DEPLOY_HOOK_URL GitHub secret). Leave true for simple push-to-deploy.
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # First deploy builds the schema from the model. Once you generate EF
+      # migrations (backend/scripts/add-migration.sh), flip this to
+      # Database__MigrateOnStartup=true instead.
+      - key: Database__EnsureCreatedOnStartup
+        value: "true"
+      - key: Jwt__SigningKey
+        generateValue: true
+      # DB connection is assembled from these discrete parts (see Infrastructure DI).
+      - key: Database__Host
+        value: quorid-mysql
+      - key: Database__Port
+        value: "3306"
+      - key: Database__Name
+        value: quorid
+      - key: Database__User
+        value: quorid
+      - key: Database__Password
+        fromService:
+          type: pserv
+          name: quorid-mysql
+          envVarKey: MYSQL_PASSWORD
+      # Optional: paste a real key in the Render dashboard to switch on Claude-backed
+      # AI (classification, extraction, drafting, Ask Quorid). Blank = offline heuristics.
+      - key: Anthropic__ApiKey
+        sync: false

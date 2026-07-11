@@ -1,0 +1,37 @@
+# Quorid — Render Blueprint (external MySQL variant).
+#
+# Use this when you want a free/cheaper deploy: it runs ONLY the app web service
+# and connects to a MySQL database you host elsewhere (PlanetScale, Aiven, RDS, …),
+# so there's no private service or disk (which require a paid Render instance).
+#
+# To use it: rename this file to `render.yaml` (Render's Blueprint reads that name),
+# then in the Render dashboard set ConnectionStrings__Default to your provider's
+# MySQL connection string, e.g.:
+#   server=HOST;port=3306;database=quorid;user=USER;password=PASSWORD;SslMode=Required;
+
+services:
+  - type: web
+    name: quorid
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # First deploy builds the schema from the model. Switch to
+      # Database__MigrateOnStartup=true once you generate EF migrations.
+      - key: Database__EnsureCreatedOnStartup
+        value: "true"
+      - key: Jwt__SigningKey
+        generateValue: true
+      # Paste your external MySQL connection string in the Render dashboard.
+      - key: ConnectionStrings__Default
+        sync: false
+      # Optional: set a real key to switch on Claude-backed AI (blank = heuristics).
+      - key: Anthropic__ApiKey
+        sync: false

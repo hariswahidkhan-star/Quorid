@@ -1,0 +1,13 @@
+# Keep host build output and VCS metadata out of the Docker build context.
+**/node_modules
+**/dist
+**/bin
+**/obj
+**/.git
+**/.vs
+**/.vscode
+**/*.user
+**/npm-debug.log
+frontend/.env
+frontend/.env.*
+backend/**/appsettings.Development.json
