@@ -57,11 +57,11 @@ public class JwtTokenService : IJwtTokenService
                 ClockSkew = TimeSpan.FromSeconds(30)
             }, out _);
 
-            if (principal.FindFirstValue(TokenTypeClaim) != "refresh")
+            if (principal.FindFirst(TokenTypeClaim)?.Value != "refresh")
                 return null;
 
-            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-            var tenantId = principal.FindFirstValue(TenantClaim);
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var tenantId = principal.FindFirst(TenantClaim)?.Value;
 
             if (Guid.TryParse(userId, out var uid) && Guid.TryParse(tenantId, out var tid))
                 return (uid, tid);

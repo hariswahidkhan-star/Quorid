@@ -58,7 +58,10 @@ services:
         generateValue: true
       # DB connection is assembled from these discrete parts (see Infrastructure DI).
       - key: Database__Host
-        value: quorid-mysql
+        fromService:
+          type: pserv
+          name: quorid-mysql
+          property: host
       - key: Database__Port
         value: "3306"
       - key: Database__Name

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Quorid.Application.Common.Interfaces;
 
@@ -17,11 +16,7 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<App
 {
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
-            .AddEnvironmentVariables()
-            .Build();
-
-        var connectionString = configuration.GetConnectionString("Default")
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__Default")
             ?? "server=localhost;port=3306;database=quorid;user=quorid;password=quorid_dev;";
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
