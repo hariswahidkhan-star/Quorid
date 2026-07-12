@@ -99,16 +99,18 @@ server=HOST;port=PORT;database=quorid;user=USER;password=PASSWORD;SslMode=Requir
 
 - **First login:** register a tenant from the login screen — the first user becomes
   the Owner with full permissions.
-- **Schema:** the first deploy sets `Database__EnsureCreatedOnStartup=true`, which
-  builds the schema from the model. Once you generate EF migrations, prefer those:
-  ```bash
-  cd backend
-  dotnet tool install --global dotnet-ef
-  ./scripts/add-migration.sh InitialCreate
-  git add src/Quorid.Infrastructure/Persistence/Migrations && git commit && git push
-  ```
-  Then in Render set `Database__MigrateOnStartup=true` (and you can drop
-  `Database__EnsureCreatedOnStartup`).
+- **Schema:** EF migrations are checked in (`backend/src/Quorid.Infrastructure/Persistence/Migrations`).
+  - **Fresh environment:** set `Database__MigrateOnStartup=true` (and no
+    `EnsureCreatedOnStartup`) — the schema is created deterministically with
+    migration history.
+  - **Existing deployment created via EnsureCreated:** do NOT flip the flag
+    blindly — the database has tables but no `__EFMigrationsHistory`. Baseline it
+    once: create the history table and insert the `InitialCreate` row
+    (`dotnet ef migrations script --idempotent` shows the exact INSERT), or
+    export data → recreate via migrations → import. Until baselined, keep
+    `Database__EnsureCreatedOnStartup=true`.
+  - New migrations: `cd backend && ./scripts/add-migration.sh <Name>`, commit the
+    generated files, push — auto-deploy applies them where `MigrateOnStartup` is on.
 - **Claude-backed AI (optional):** set `Anthropic__ApiKey` on the `quorid` service.
   Blank keeps the offline heuristics; a real key switches on Claude for
   classification, extraction, drafting, and Ask Quorid.

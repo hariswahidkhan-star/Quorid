@@ -56,6 +56,9 @@ services:
         value: "true"
       - key: Jwt__SigningKey
         generateValue: true
+      # Self-serve signup: Open (default) | InviteOnly | Disabled (ADR-015).
+      - key: Registration__Mode
+        value: "Open"
       # DB connection is assembled from these discrete parts (see Infrastructure DI).
       - key: Database__Host
         fromService:
